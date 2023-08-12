@@ -1,0 +1,6 @@
+# directories
+playground
+
+# enviroment files
+.env
+*.json
