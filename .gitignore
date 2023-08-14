@@ -1,5 +1,6 @@
 # directories
 playground
+tmp
 
 # enviroment files
 .env
