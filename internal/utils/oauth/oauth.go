@@ -34,9 +34,9 @@ func newGoogle() (*Google, error) {
 	return google, nil
 }
 
-func (g *Google) GetAuthCodeURL() string {
+func (g *Google) GetAuthCodeURL(oauthState string) string {
 	// TODO: stateをどうするか
-	authURL := g.Config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
+	authURL := g.Config.AuthCodeURL(oauthState, oauth2.AccessTypeOffline)
 	return authURL
 }
 
