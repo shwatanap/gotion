@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	"github.com/shwatanap/gotion/internal/utils/oauth"
+	"github.com/shwatanap/gotion/internal/model"
 )
 
 const OAUTH_STATE = "oauth-state"
@@ -17,8 +17,8 @@ func GoogleSignUp(c *gin.Context) {
 	oauthState := id.String()
 	// TODO: 本番環境と開発環境でドメインを変える
 	c.SetCookie(OAUTH_STATE, oauthState, 365*24*60, "/oauth/google", "localhost", true, true)
-	g, _ := oauth.NewGoogle()
-	c.Redirect(http.StatusFound, g.GetAuthCodeURL(oauthState))
+	o, _ := model.NewOAuth()
+	c.Redirect(http.StatusFound, o.GetAuthCodeURL(oauthState))
 }
 
 func GoogleSignUpCallback(c *gin.Context) {
