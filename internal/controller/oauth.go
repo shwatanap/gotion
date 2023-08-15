@@ -24,8 +24,7 @@ func GoogleSignUp(c *gin.Context) {
 func GoogleSignUpCallback(c *gin.Context) {
 	oauthState, _ := c.Cookie(OAUTH_STATE)
 	state := c.Query("state")
-	// code := c.Query("code")
-
+	code := c.Query("code")
 	// state検証
 	if state != oauthState {
 		log.Fatal("invalid oauth google state")
@@ -33,5 +32,20 @@ func GoogleSignUpCallback(c *gin.Context) {
 	}
 	// Cookie削除
 	c.SetCookie(OAUTH_STATE, oauthState, -1, "/oauth/google", "localhost", true, true)
+	// Token保存
+	o, _ := model.NewOAuth()
+	token, _ := o.GetTokenFromCode(code)
+	userId, err := o.GetUserId(c.Request.Context(), token)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+	}
+	c.SetCookie("user_id", userId, 365*24*60, "/", "localhost", true, true)
+	if err = model.PutRefreshToken(c.Request.Context(), userId, token.RefreshToken); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+	}
 	c.Redirect(http.StatusFound, "/")
 }
