@@ -1,4 +1,4 @@
-package oauth
+package model
 
 import (
 	"context"
@@ -11,15 +11,11 @@ import (
 	"google.golang.org/api/calendar/v3"
 )
 
-type Google struct {
+type OAuth struct {
 	Config *oauth2.Config
 }
 
-func NewGoogle() (*Google, error) {
-	return newGoogle()
-}
-
-func newGoogle() (*Google, error) {
+func NewOAuth() (*OAuth, error) {
 	b, err := os.ReadFile("credentials_web.json")
 	if err != nil {
 		return nil, fmt.Errorf("nable to read client secret file: %v", err)
@@ -28,19 +24,19 @@ func newGoogle() (*Google, error) {
 	if err != nil {
 		return nil, fmt.Errorf("nable to parse client secret file to config: %v", err)
 	}
-	google := &Google{
+	oauth := &OAuth{
 		Config: config,
 	}
-	return google, nil
+	return oauth, nil
 }
 
-func (g *Google) GetAuthCodeURL(oauthState string) string {
+func (g *OAuth) GetAuthCodeURL(oauthState string) string {
 	// TODO: stateをどうするか
 	authURL := g.Config.AuthCodeURL(oauthState, oauth2.AccessTypeOffline)
 	return authURL
 }
 
-func (g *Google) GetClient(authCode string) (*http.Client, error) {
+func (g *OAuth) GetClient(authCode string) (*http.Client, error) {
 	token, err := g.Config.Exchange(context.TODO(), authCode)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve token from web: %v", err)
