@@ -16,7 +16,7 @@ func NewCalendarService(srv *calendar.Service) *CalendarsService {
 	}
 }
 
-func (cs *CalendarsService) List(timeMin string) ([]*Calendar, error) {
+func (cs *CalendarsService) List() ([]*Calendar, error) {
 	calendarList, err := cs.Srv.CalendarList.List().Do()
 	if err != nil {
 		return nil, err
