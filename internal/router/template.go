@@ -7,7 +7,7 @@ import (
 )
 
 func initTemplateRouter(r *gin.Engine) {
-	r.LoadHTMLGlob("internal/view/*.html")
+	r.LoadHTMLGlob("internal/view/template/*.html")
 
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", gin.H{})

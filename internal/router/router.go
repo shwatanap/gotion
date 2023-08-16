@@ -9,5 +9,6 @@ func Router() *gin.Engine {
 	initTemplateRouter(router)
 	initHealthRouter(router)
 	initOAuthRouter(router)
+	initCalendarRouter(router)
 	return router
 }
