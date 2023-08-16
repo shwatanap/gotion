@@ -40,12 +40,14 @@ func (o *OAuth) GetAuthCodeURL(oauthState string) string {
 	return authURL
 }
 
-func (o *OAuth) RefreshToken(ctx context.Context, token *oauth2.Token) (*oauth2.Token, error) {
-	newToken, err := o.Config.TokenSource(ctx, token).Token()
-	if err != nil {
-		return nil, err
+func (o *OAuth) RefreshToken(ctx context.Context, userId string) (*oauth2.Token, error) {
+	refresh_token, _ := GetRefreshToken(ctx, userId)
+	token := &oauth2.Token{
+		RefreshToken: refresh_token,
 	}
-	userId, err := o.GetUserId(ctx, newToken)
+	// Token更新処理
+	// TODO: Tokenが切れていた時の処理
+	newToken, err := o.Config.TokenSource(ctx, token).Token()
 	if err != nil {
 		return nil, err
 	}
