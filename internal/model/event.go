@@ -7,19 +7,17 @@ type Event struct {
 }
 
 type EventsService struct {
-	Srv        *calendar.EventsService
-	CalendarId string
+	Srv *calendar.EventsService
 }
 
-func NewEventService(srv *calendar.EventsService, calendarId string) *EventsService {
+func NewEventService(srv *calendar.EventsService) *EventsService {
 	return &EventsService{
-		Srv:        srv,
-		CalendarId: calendarId,
+		Srv: srv,
 	}
 }
 
-func (e *EventsService) List(timeMin string) ([]*Event, error) {
-	events, err := e.Srv.List(e.CalendarId).TimeMin(timeMin).Do()
+func (e *EventsService) List(calendarId string, timeMin string) ([]*Event, error) {
+	events, err := e.Srv.List(calendarId).TimeMin(timeMin).Do()
 	if err != nil {
 		return nil, err
 	}
