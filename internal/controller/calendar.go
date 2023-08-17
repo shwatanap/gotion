@@ -30,6 +30,7 @@ func CalendarList(c *gin.Context) {
 		res[i] = response.CalendarResponse{
 			Id:         c.Calendar.Id,
 			Summary:    c.Calendar.Summary,
+			ColorId:    c.Calendar.ColorId,
 			AccessRole: c.Calendar.AccessRole,
 		}
 	}
