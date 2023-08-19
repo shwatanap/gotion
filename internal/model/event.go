@@ -16,7 +16,7 @@ func NewEventService(srv *calendar.EventsService) *EventsService {
 	}
 }
 
-func (e *EventsService) List(calendarID string) ([]*Event, error) {
+func (e *EventsService) EventList(calendarID string) ([]*Event, error) {
 	events, err := e.Srv.List(calendarID).Do()
 	if err != nil {
 		return nil, err

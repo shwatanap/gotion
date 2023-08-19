@@ -30,7 +30,7 @@ func NewCalendarService(ctx context.Context, token *oauth2.Token) (*CalendarsSer
 	}, nil
 }
 
-func (cs *CalendarsService) List() ([]*Calendar, error) {
+func (cs *CalendarsService) CalendarList() ([]*Calendar, error) {
 	calendarList, err := cs.Srv.CalendarList.List().Do()
 	if err != nil {
 		return nil, err
