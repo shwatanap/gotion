@@ -9,9 +9,9 @@ import (
 
 func CalendarList(c *gin.Context) {
 	// TODO: Cookieにuser_idが存在しない場合のエラーハンドリング
-	userId, _ := c.Cookie("user_id")
+	userID, _ := c.Cookie("user_id")
 	o, _ := model.NewOAuth()
-	token, err := o.RefreshToken(c.Request.Context(), userId)
+	token, err := o.RefreshToken(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"error": err.Error(),
@@ -28,9 +28,9 @@ func CalendarList(c *gin.Context) {
 	res := make([]response.CalendarResponse, len(calendars))
 	for i, c := range calendars {
 		res[i] = response.CalendarResponse{
-			Id:         c.Calendar.Id,
+			ID:         c.Calendar.Id,
 			Summary:    c.Calendar.Summary,
-			ColorId:    c.Calendar.ColorId,
+			ColorID:    c.Calendar.ColorId,
 			AccessRole: c.Calendar.AccessRole,
 		}
 	}

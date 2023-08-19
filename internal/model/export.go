@@ -29,7 +29,7 @@ func GCalendarExport(ctx context.Context, token *oauth2.Token, notionAPIkey, pag
 
 	nc := NewNotionClient(notionAPIkey)
 	db, err := nc.CreateDatabase(ctx, CreateDatabaseRequest{
-		PageId:          pageID,
+		PageID:          pageID,
 		Title:           dbTitle,
 		CalendarOptions: calendarOptions,
 	})
@@ -41,7 +41,6 @@ func GCalendarExport(ctx context.Context, token *oauth2.Token, notionAPIkey, pag
 	for i, c := range calendars {
 		events, err := es.List(c.Calendar.Id)
 		if err != nil {
-			log.Println(c.Calendar.Id)
 			log.Printf("error from event list😡: %v", err)
 			return
 		}

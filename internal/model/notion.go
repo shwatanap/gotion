@@ -16,7 +16,7 @@ func NewNotionClient(apikey string) *NotionClient {
 }
 
 type CreateDatabaseRequest struct {
-	PageId          string
+	PageID          string
 	Title           string
 	CalendarOptions []notionapi.Option
 }
@@ -25,7 +25,7 @@ func (nc *NotionClient) CreateDatabase(ctx context.Context, req CreateDatabaseRe
 	request := &notionapi.DatabaseCreateRequest{
 		Parent: notionapi.Parent{
 			Type:      notionapi.ParentTypePageID,
-			PageID:    notionapi.PageID(req.PageId),
+			PageID:    notionapi.PageID(req.PageID),
 			Workspace: false,
 		},
 		Title: []notionapi.RichText{
@@ -107,8 +107,8 @@ func (nc *NotionClient) AddEvent(ctx context.Context, req AddEventRequest) error
 	return err
 }
 
-// func (nc *NotionClient) GetDatabase(ctx context.Context, databaseId notionapi.DatabaseID) error {
-// 	res, err := nc.client.Database.Query(ctx, databaseId, nil)
+// func (nc *NotionClient) GetDatabase(ctx context.Context, databaseID notionapi.DatabaseID) error {
+// 	res, err := nc.client.Database.Query(ctx, databaseID, nil)
 // 	if err != nil {
 // 		log.Println("😡", err.Error())
 // 		return err
@@ -125,7 +125,7 @@ func (nc *NotionClient) AddEvent(ctx context.Context, req AddEventRequest) error
 // 		// log.Printf("🥺: %v", page)
 // 	}
 // 	log.Println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-// 	db, _ := nc.client.Database.Get(ctx, databaseId)
+// 	db, _ := nc.client.Database.Get(ctx, databaseID)
 // 	for key, value := range db.Properties {
 // 		log.Printf("%s: %v", key, value)
 // 	}

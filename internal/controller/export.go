@@ -6,9 +6,9 @@ import (
 )
 
 func GCalendarExport(c *gin.Context) {
-	userId, _ := c.Cookie("user_id")
+	userID, _ := c.Cookie("user_id")
 	o, _ := model.NewOAuth()
-	token, err := o.RefreshToken(c.Request.Context(), userId)
+	token, err := o.RefreshToken(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"error": err.Error(),
