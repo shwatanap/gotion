@@ -35,14 +35,14 @@ func GoogleSignUpCallback(c *gin.Context) {
 	// Token保存
 	o, _ := model.NewOAuth()
 	token, _ := o.GetTokenFromCode(code)
-	userId, err := o.GetUserId(c.Request.Context(), token)
+	userID, err := o.GetUserID(c.Request.Context(), token)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 	}
-	c.SetCookie("user_id", userId, 365*24*60, "/", "localhost", true, true)
-	if err = model.PutRefreshToken(c.Request.Context(), userId, token.RefreshToken); err != nil {
+	c.SetCookie("user_id", userID, 365*24*60, "/", "localhost", true, true)
+	if err = model.PutRefreshToken(c.Request.Context(), userID, token.RefreshToken); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})

@@ -1,9 +1,9 @@
 package response
 
 type CalendarResponse struct {
-	Id         string `json:"id"`
+	ID         string `json:"id"`
 	Summary    string `json:"summary"`
-	ColorId    string `json:"color_id"`
+	ColorID    string `json:"color_id"`
 	AccessRole string `json:"access_role"`
 }
 
