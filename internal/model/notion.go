@@ -16,15 +16,16 @@ func NewNotionClient(apikey string) *NotionClient {
 }
 
 type CreateDatabaseRequest struct {
-	PageId notionapi.PageID
-	Title  string
+	PageId          string
+	Title           string
+	CalendarOptions []notionapi.Option
 }
 
 func (nc *NotionClient) CreateDatabase(ctx context.Context, req CreateDatabaseRequest) (*notionapi.Database, error) {
 	request := &notionapi.DatabaseCreateRequest{
 		Parent: notionapi.Parent{
 			Type:      notionapi.ParentTypePageID,
-			PageID:    req.PageId,
+			PageID:    notionapi.PageID(req.PageId),
 			Workspace: false,
 		},
 		Title: []notionapi.RichText{
@@ -45,19 +46,7 @@ func (nc *NotionClient) CreateDatabase(ctx context.Context, req CreateDatabaseRe
 				ID:   "calendar",
 				Type: notionapi.PropertyConfigTypeSelect,
 				Select: notionapi.Select{
-					Options: []notionapi.Option{},
-					// Options: []notionapi.Option{
-					// 	{
-					// 		ID:    "0",
-					// 		Name:  "イベント",
-					// 		Color: "blue",
-					// 	},
-					// 	{
-					// 		ID:    "1",
-					// 		Name:  "遊び",
-					// 		Color: "red",
-					// 	},
-					// },
+					Options: req.CalendarOptions,
 				},
 			},
 			"date": &notionapi.DatePropertyConfig{
@@ -122,14 +111,15 @@ func (nc *NotionClient) AddEvent(ctx context.Context, req AddEventRequest) error
 // 	res, err := nc.client.Database.Query(ctx, databaseId, nil)
 // 	if err != nil {
 // 		log.Println("😡", err.Error())
+// 		return err
 // 	}
 // 	for _, page := range res.Results {
 // 		log.Println("=====================================")
 // 		// log.Printf("🥺: %v, %v, %v", page.Properties["calendar"], page.Properties["date"], page.Properties["name"])
-// 		log.Printf("🥺:%v", page.Properties["名前"])
+// 		// log.Printf("🥺:%v", page.Properties["名前"])
 // 		// log.Printf("🥺:%v", page.Properties["name"])
 // 		// log.Printf("🥺:%v", page.Properties["date"].(*notionapi.DateProperty).Date)
-// 		// log.Printf("👏: %v", page.Properties["calendar"])
+// 		log.Printf("👏: %v", page.Properties["calendar"])
 // 		// log.Printf("🥺: %v", page)
 // 		// log.Printf("🥺: %v", page)
 // 		// log.Printf("🥺: %v", page)
