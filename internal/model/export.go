@@ -12,7 +12,7 @@ import (
 func GCalendarExport(ctx context.Context, token *oauth2.Token, notionAPIkey, pageID, dbTitle string) {
 	cs, _ := NewCalendarService(ctx, token)
 	es := NewEventService(cs.Srv.Events)
-	calendars, _ := cs.List()
+	calendars, _ := cs.CalendarList()
 	calendarOptions := make([]notionapi.Option, len(calendars))
 	for i, c := range calendars {
 		color := GCalendaToNotionColorMap[c.Calendar.ColorId]
@@ -39,7 +39,7 @@ func GCalendarExport(ctx context.Context, token *oauth2.Token, notionAPIkey, pag
 
 	// ここからイベント作成処理
 	for i, c := range calendars {
-		events, err := es.List(c.Calendar.Id)
+		events, err := es.EventList(c.Calendar.Id)
 		if err != nil {
 			log.Printf("error from event list😡: %v", err)
 			return

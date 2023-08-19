@@ -23,7 +23,7 @@ func CalendarList(c *gin.Context) {
 			"error": err.Error(),
 		})
 	}
-	calendars, _ := cs.List()
+	calendars, _ := cs.CalendarList()
 	// var res model.CalendarListResponse
 	res := make([]response.CalendarResponse, len(calendars))
 	for i, c := range calendars {
