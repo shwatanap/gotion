@@ -10,7 +10,7 @@ import (
 func CalendarList(c *gin.Context) {
 	// TODO: Cookieにuser_idが存在しない場合のエラーハンドリング
 	userID, _ := c.Cookie("user_id")
-	o, _ := model.NewOAuth()
+	o := model.NewGoogleOAuth()
 	token, err := o.RefreshToken(c.Request.Context(), userID)
 	if err != nil {
 		c.JSON(500, gin.H{

@@ -2,12 +2,10 @@ package model
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"time"
 
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
 	goauth2 "google.golang.org/api/oauth2/v2"
 	"google.golang.org/api/option"
@@ -19,19 +17,24 @@ type OAuth struct {
 	Config *oauth2.Config
 }
 
-func NewOAuth() (*OAuth, error) {
-	b, err := os.ReadFile("credentials_web.json")
-	if err != nil {
-		return nil, fmt.Errorf("unable to read client secret file: %v", err)
-	}
-	cfg, err := google.ConfigFromJSON(b, calendar.CalendarReadonlyScope, goauth2.UserinfoProfileScope)
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse client secret file to config: %v", err)
+func NewGoogleOAuth() *OAuth {
+	cfg := &oauth2.Config{
+		ClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
+		ClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  os.Getenv("GOOGLE_AUTH_URL"),
+			TokenURL: os.Getenv("GOOGLE_TOKEN_URL"),
+		},
+		RedirectURL: os.Getenv("GOOGLE_REDIRECT_URL"),
+		Scopes: []string{
+			goauth2.UserinfoProfileScope,
+			calendar.CalendarReadonlyScope,
+		},
 	}
 	oauth := &OAuth{
 		Config: cfg,
 	}
-	return oauth, nil
+	return oauth
 }
 
 func (o *OAuth) GetAuthCodeURL(oauthState string) string {
