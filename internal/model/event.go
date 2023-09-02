@@ -21,9 +21,12 @@ func (e *EventsService) EventList(calendarID string) ([]*Event, error) {
 	if err != nil {
 		return nil, err
 	}
-	ems := make([]*Event, len(events.Items))
-	for i, event := range events.Items {
-		ems[i] = &Event{Event: event}
+	var ems []*Event
+	for _, event := range events.Items {
+		if event == nil {
+			continue
+		}
+		ems = append(ems, &Event{Event: event})
 	}
 	return ems, nil
 }
