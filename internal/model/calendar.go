@@ -17,10 +17,7 @@ type CalendarsService struct {
 }
 
 func NewCalendarService(ctx context.Context, token *oauth2.Token) (*CalendarsService, error) {
-	o, err := NewOAuth()
-	if err != nil {
-		return nil, err
-	}
+	o := NewGoogleOAuth()
 	srv, err := calendar.NewService(ctx, option.WithTokenSource(o.Config.TokenSource(ctx, token)))
 	if err != nil {
 		return nil, err

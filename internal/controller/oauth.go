@@ -17,7 +17,7 @@ func GoogleSignUp(c *gin.Context) {
 	oauthState := id.String()
 	// TODO: 本番環境と開発環境でドメインを変える
 	c.SetCookie(OAUTH_STATE, oauthState, 365*24*60, "/oauth/google", "localhost", true, true)
-	o, _ := model.NewOAuth()
+	o := model.NewGoogleOAuth()
 	c.Redirect(http.StatusFound, o.GetAuthCodeURL(oauthState))
 }
 
@@ -27,13 +27,13 @@ func GoogleSignUpCallback(c *gin.Context) {
 	code := c.Query("code")
 	// state検証
 	if state != oauthState {
-		log.Fatal("invalid oauth google state")
+		log.Println("invalid oauth google state")
 		c.Redirect(http.StatusTemporaryRedirect, "/signup")
 	}
 	// Cookie削除
 	c.SetCookie(OAUTH_STATE, oauthState, -1, "/oauth/google", "localhost", true, true)
 	// Token保存
-	o, _ := model.NewOAuth()
+	o := model.NewGoogleOAuth()
 	token, _ := o.GetTokenFromCode(code)
 	userID, err := o.GetUserID(c.Request.Context(), token)
 	if err != nil {
