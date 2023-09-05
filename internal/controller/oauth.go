@@ -10,19 +10,20 @@ import (
 	"github.com/shwatanap/gotion/internal/model"
 )
 
-const OAUTH_STATE = "oauth-state"
+const GOOGLE_OAUTH_STATE = "google-oauth-state"
+const NOTION_OAUTH_STATE = "notion-oauth-state"
 
 func GoogleSignUp(c *gin.Context) {
 	id, _ := uuid.NewUUID()
 	oauthState := id.String()
 	// TODO: 本番環境と開発環境でドメインを変える
-	c.SetCookie(OAUTH_STATE, oauthState, 365*24*60, "/oauth/google", "localhost", true, true)
+	c.SetCookie(GOOGLE_OAUTH_STATE, oauthState, 365*24*60, "/oauth/google", "localhost", true, true)
 	o := model.NewGoogleOAuth()
 	c.Redirect(http.StatusFound, o.GetAuthCodeURL(oauthState))
 }
 
 func GoogleSignUpCallback(c *gin.Context) {
-	oauthState, _ := c.Cookie(OAUTH_STATE)
+	oauthState, _ := c.Cookie(GOOGLE_OAUTH_STATE)
 	state := c.Query("state")
 	code := c.Query("code")
 	// state検証
@@ -31,7 +32,7 @@ func GoogleSignUpCallback(c *gin.Context) {
 		c.Redirect(http.StatusTemporaryRedirect, "/signup")
 	}
 	// Cookie削除
-	c.SetCookie(OAUTH_STATE, oauthState, -1, "/oauth/google", "localhost", true, true)
+	c.SetCookie(GOOGLE_OAUTH_STATE, oauthState, -1, "/oauth/google", "localhost", true, true)
 	// Token保存
 	o := model.NewGoogleOAuth()
 	token, err := o.GetTokenFromCode(c.Request.Context(), code)
@@ -59,13 +60,13 @@ func NotionOAuth(c *gin.Context) {
 	id, _ := uuid.NewUUID()
 	oauthState := id.String()
 	// TODO: 本番環境と開発環境でドメインを変える
-	c.SetCookie(OAUTH_STATE, oauthState, 365*24*60, "/oauth/notion", "localhost", true, true)
+	c.SetCookie(NOTION_OAUTH_STATE, oauthState, 365*24*60, "/oauth/notion", "localhost", true, true)
 	o := model.NewNotionOAuth()
 	c.Redirect(http.StatusFound, o.GetAuthCodeURL(oauthState))
 }
 
 func NotionOAuthCallback(c *gin.Context) {
-	oauthState, _ := c.Cookie(OAUTH_STATE)
+	oauthState, _ := c.Cookie(NOTION_OAUTH_STATE)
 	state := c.Query("state")
 	code := c.Query("code")
 	// state検証
@@ -74,7 +75,7 @@ func NotionOAuthCallback(c *gin.Context) {
 		c.Redirect(http.StatusTemporaryRedirect, "/signup")
 	}
 	// Cookie削除
-	c.SetCookie(OAUTH_STATE, oauthState, -1, "/oauth/notion", "localhost", true, true)
+	c.SetCookie(NOTION_OAUTH_STATE, oauthState, -1, "/oauth/notion", "localhost", true, true)
 	// Token保存
 	o := model.NewNotionOAuth()
 	token, err := o.GetTokenFromCode(c, code)
