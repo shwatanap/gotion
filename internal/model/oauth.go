@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
@@ -37,8 +38,23 @@ func NewGoogleOAuth() *OAuth {
 	return oauth
 }
 
+func NewNotionOAuth() *OAuth {
+	cfg := &oauth2.Config{
+		ClientID:     os.Getenv("NOTION_CLIENT_ID"),
+		ClientSecret: os.Getenv("NOTION_CLIENT_SECRET"),
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  os.Getenv("NOTION_AUTH_URL"),
+			TokenURL: os.Getenv("NOTION_TOKEN_URL"),
+		},
+		RedirectURL: os.Getenv("NOTION_REDIRECT_URL"),
+	}
+	oauth := &OAuth{
+		Config: cfg,
+	}
+	return oauth
+}
+
 func (o *OAuth) GetAuthCodeURL(oauthState string) string {
-	// TODO: stateをどうするか
 	authURL := o.Config.AuthCodeURL(oauthState, oauth2.AccessTypeOffline)
 	return authURL
 }
@@ -75,9 +91,12 @@ func (o *OAuth) GetUserID(ctx context.Context, token *oauth2.Token) (string, err
 	return userinfo.Id, nil
 }
 
-func (o *OAuth) GetTokenFromCode(authCode string) (token *oauth2.Token, err error) {
-	token, err = o.Config.Exchange(context.TODO(), authCode)
-	return
+func (o *OAuth) GetTokenFromCode(ctx context.Context, authCode string) (*oauth2.Token, error) {
+	token, err := o.Config.Exchange(ctx, authCode)
+	if err != nil {
+		return nil, fmt.Errorf("excahnge code: %w", err)
+	}
+	return token, nil
 }
 
 func GetRefreshToken(ctx context.Context, userID string) (string, error) {
