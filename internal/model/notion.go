@@ -2,17 +2,35 @@ package model
 
 import (
 	"context"
+	"os"
 
 	"github.com/jomei/notionapi"
+	"golang.org/x/oauth2"
 )
 
 type NotionClient struct {
 	client *notionapi.Client
 }
 
-func NewNotionClient(apikey string) *NotionClient {
-	client := notionapi.NewClient(notionapi.Token(apikey))
+func NewNotionClient(token string) *NotionClient {
+	client := notionapi.NewClient(notionapi.Token(token))
 	return &NotionClient{client: client}
+}
+
+func NewNotionOAuth() *OAuth {
+	cfg := &oauth2.Config{
+		ClientID:     os.Getenv("NOTION_CLIENT_ID"),
+		ClientSecret: os.Getenv("NOTION_CLIENT_SECRET"),
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  os.Getenv("NOTION_AUTH_URL"),
+			TokenURL: os.Getenv("NOTION_TOKEN_URL"),
+		},
+		RedirectURL: os.Getenv("NOTION_REDIRECT_URL"),
+	}
+	oauth := &OAuth{
+		Config: cfg,
+	}
+	return oauth
 }
 
 type CreateDatabaseRequest struct {
