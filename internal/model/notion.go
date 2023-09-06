@@ -10,8 +10,8 @@ type NotionClient struct {
 	client *notionapi.Client
 }
 
-func NewNotionClient(apikey string) *NotionClient {
-	client := notionapi.NewClient(notionapi.Token(apikey))
+func NewNotionClient(token string) *NotionClient {
+	client := notionapi.NewClient(notionapi.Token(token))
 	return &NotionClient{client: client}
 }
 
