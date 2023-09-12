@@ -17,11 +17,10 @@ const NOTION_OAUTH_STATE = "notion-oauth-state"
 func GoogleSignUp(c *gin.Context) {
 	id, _ := uuid.NewUUID()
 	oauthState := id.String()
-	// TODO: 本番環境と開発環境でドメインを変える
 	c.SetCookie(GOOGLE_OAUTH_STATE, oauthState, 365*24*60, "/", os.Getenv("CLIENT_DOMAIN"), true, true)
 	o := model.NewGoogleOAuth()
 	c.Header("Location", o.GetAuthCodeURL(oauthState))
-	c.JSON(http.StatusFound, gin.H{})
+	c.JSON(http.StatusNoContent, gin.H{})
 }
 
 func GoogleSignUpCallback(c *gin.Context) {
@@ -62,12 +61,11 @@ func GoogleSignUpCallback(c *gin.Context) {
 
 func NotionOAuth(c *gin.Context) {
 	id, _ := uuid.NewUUID()
-	oauthState := id.String()
-	// TODO: 本番環境と開発環境でドメインを変える
-	c.SetCookie(NOTION_OAUTH_STATE, oauthState, 365*24*60, "/", os.Getenv("CLIENT_DOMAIN"), true, true)
+	state := id.String()
+	c.SetCookie(NOTION_OAUTH_STATE, state, 365*24*60, "/", os.Getenv("CLIENT_DOMAIN"), true, true)
 	o := model.NewNotionOAuth()
-	c.Header("Location", o.GetAuthCodeURL(oauthState))
-	c.JSON(http.StatusFound, gin.H{})
+	c.Header("Location", o.GetAuthCodeURL(state))
+	c.JSON(http.StatusNoContent, gin.H{})
 }
 
 func NotionOAuthCallback(c *gin.Context) {
