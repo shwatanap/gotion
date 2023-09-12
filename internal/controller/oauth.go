@@ -17,9 +17,10 @@ func GoogleSignUp(c *gin.Context) {
 	id, _ := uuid.NewUUID()
 	oauthState := id.String()
 	// TODO: 本番環境と開発環境でドメインを変える
-	c.SetCookie(GOOGLE_OAUTH_STATE, oauthState, 365*24*60, "/oauth/google", "localhost", true, true)
+	c.SetCookie(GOOGLE_OAUTH_STATE, oauthState, 365*24*60, "/", "localhost", true, true)
 	o := model.NewGoogleOAuth()
-	c.Redirect(http.StatusFound, o.GetAuthCodeURL(oauthState))
+	c.Header("Location", o.GetAuthCodeURL(oauthState))
+	c.JSON(http.StatusFound, gin.H{})
 }
 
 func GoogleSignUpCallback(c *gin.Context) {
@@ -28,11 +29,13 @@ func GoogleSignUpCallback(c *gin.Context) {
 	code := c.Query("code")
 	// state検証
 	if state != oauthState {
-		log.Println("invalid oauth google state")
-		c.Redirect(http.StatusTemporaryRedirect, "/signup")
+		c.SetCookie(GOOGLE_OAUTH_STATE, oauthState, -1, "/", "localhost", true, true)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "invalid oauth google state",
+		})
 	}
 	// Cookie削除
-	c.SetCookie(GOOGLE_OAUTH_STATE, oauthState, -1, "/oauth/google", "localhost", true, true)
+	c.SetCookie(GOOGLE_OAUTH_STATE, oauthState, -1, "/", "localhost", true, true)
 	// Token保存
 	o := model.NewGoogleOAuth()
 	token, err := o.GetTokenFromCode(c.Request.Context(), code)
@@ -53,16 +56,17 @@ func GoogleSignUpCallback(c *gin.Context) {
 			"error": err.Error(),
 		})
 	}
-	c.Redirect(http.StatusFound, "/")
+	c.Redirect(http.StatusFound, "http://localhost:5173/next")
 }
 
 func NotionOAuth(c *gin.Context) {
 	id, _ := uuid.NewUUID()
 	oauthState := id.String()
 	// TODO: 本番環境と開発環境でドメインを変える
-	c.SetCookie(NOTION_OAUTH_STATE, oauthState, 365*24*60, "/oauth/notion", "localhost", true, true)
+	c.SetCookie(NOTION_OAUTH_STATE, oauthState, 365*24*60, "/", "localhost", true, true)
 	o := model.NewNotionOAuth()
-	c.Redirect(http.StatusFound, o.GetAuthCodeURL(oauthState))
+	c.Header("Location", o.GetAuthCodeURL(oauthState))
+	c.JSON(http.StatusFound, gin.H{})
 }
 
 func NotionOAuthCallback(c *gin.Context) {
@@ -71,11 +75,13 @@ func NotionOAuthCallback(c *gin.Context) {
 	code := c.Query("code")
 	// state検証
 	if state != oauthState {
-		log.Println("invalid oauth notion state")
-		c.Redirect(http.StatusTemporaryRedirect, "/signup")
+		c.SetCookie(GOOGLE_OAUTH_STATE, oauthState, -1, "/", "localhost", true, true)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "invalid oauth google state",
+		})
 	}
 	// Cookie削除
-	c.SetCookie(NOTION_OAUTH_STATE, oauthState, -1, "/oauth/notion", "localhost", true, true)
+	c.SetCookie(NOTION_OAUTH_STATE, oauthState, -1, "/", "localhost", true, true)
 	// Token保存
 	o := model.NewNotionOAuth()
 	token, err := o.GetTokenFromCode(c, code)
@@ -86,5 +92,5 @@ func NotionOAuthCallback(c *gin.Context) {
 		return
 	}
 	log.Println("🥺", token, err)
-	c.Redirect(http.StatusFound, "/")
+	c.Redirect(http.StatusFound, "http://localhost:5173/next")
 }
