@@ -8,10 +8,10 @@ import (
 
 func initOAuthRouter(r *gin.Engine) {
 	grg := r.Group("/oauth/google")
-	grg.GET("/", controller.GoogleSignUp)
+	grg.GET("", controller.GoogleSignUp)
 	grg.GET("/callback", controller.GoogleSignUpCallback)
 
 	nrg := r.Group("/oauth/notion")
-	nrg.GET("/", controller.NotionOAuth)
+	nrg.GET("", controller.NotionOAuth)
 	nrg.GET("/callback", controller.NotionOAuthCallback)
 }
