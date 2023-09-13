@@ -10,7 +10,8 @@ import (
 func Cors(r *gin.Engine) {
 	r.Use(cors.New(cors.Config{
 		AllowOrigins: []string{
-			"http://localhost:5173",
+			"http://localhost:5173",     // 開発環境
+			"https://gotion.vercel.app", // 本番環境
 		},
 		AllowMethods: []string{
 			"GET",
