@@ -20,9 +20,16 @@ func (o *OAuth) GetAuthCodeURL(oauthState string) string {
 }
 
 func (o *OAuth) RefreshToken(ctx context.Context, userID string) (*oauth2.Token, error) {
-	refresh_token, _ := GetRefreshToken(ctx, userID)
+	refresh_token, err := GetRefreshToken(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	refresh_token, err = util.Decrypt([]byte(refresh_token), []byte(os.Getenv("ENCRYPTION_KEY")))
+	if err != nil {
+		return nil, err
+	}
 	token := &oauth2.Token{
-		RefreshToken: refresh_token,
+		RefreshToken: string(refresh_token),
 	}
 	// Token更新処理
 	// TODO: Tokenが切れていた時の処理
@@ -30,7 +37,11 @@ func (o *OAuth) RefreshToken(ctx context.Context, userID string) (*oauth2.Token,
 	if err != nil {
 		return nil, err
 	}
-	if err := PutRefreshToken(ctx, userID, newToken.RefreshToken); err != nil {
+	cipherRefreshToken, err := util.Encrypt([]byte(newToken.RefreshToken), []byte(os.Getenv("ENCRYPTION_KEY")))
+	if err != nil {
+		return nil, err
+	}
+	if err := PutRefreshToken(ctx, userID, cipherRefreshToken); err != nil {
 		return nil, err
 	}
 	return newToken, nil
@@ -44,31 +55,36 @@ func (o *OAuth) GetTokenFromCode(ctx context.Context, authCode string) (*oauth2.
 	return token, nil
 }
 
-func GetRefreshToken(ctx context.Context, userID string) (string, error) {
+func GetRefreshToken(ctx context.Context, userID string) ([]byte, error) {
 	client := NewFirestore(ctx)
-	dsnap, err := client.Collection("tokens").Doc(userID).Get(ctx)
+	dsnap, err := client.Collection("users").Doc(userID).Get(ctx)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	m := dsnap.Data()
-	return m["refresh_token"].(string), nil
+	return m["google_refresh_token"].([]byte), nil
 }
 
-func PutRefreshToken(ctx context.Context, userID string, refreshToken string) error {
+func PutRefreshToken(ctx context.Context, userID string, refreshToken []byte) error {
 	client := NewFirestore(ctx)
-	docRef := client.Collection("tokens").Doc(userID)
+	docRef := client.Collection("users").Doc(userID)
 	dsnap, err := docRef.Get(ctx)
 	if err != nil && status.Code(err) != codes.NotFound {
 		return err
 	}
 	// TODO: refresh_tokenの暗号化
-	data := map[string]interface{}{
-		"refresh_token": refreshToken,
-		"updated_at":    time.Now(),
-	}
-	if !dsnap.Exists() {
-		data["user_id"] = userID
-		data["created_at"] = time.Now()
+	var data map[string]interface{}
+	if dsnap.Exists() {
+		data = dsnap.Data()
+		data["google_refresh_token"] = refreshToken
+		data["updated_at"] = time.Now()
+	} else {
+		data = map[string]interface{}{
+			"user_id":              userID,
+			"google_refresh_token": refreshToken,
+			"created_at":           time.Now(),
+			"updated_at":           time.Now(),
+		}
 	}
 	_, err = docRef.Set(ctx, data)
 	return err
