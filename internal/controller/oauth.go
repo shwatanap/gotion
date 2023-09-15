@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"log"
 	"net/http"
 	"os"
 
@@ -9,10 +8,12 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/shwatanap/gotion/internal/model"
+	"github.com/shwatanap/gotion/internal/util"
 )
 
 const GOOGLE_OAUTH_STATE = "google-oauth-state"
 const NOTION_OAUTH_STATE = "notion-oauth-state"
+const NOTION_ACCESS_TOKEN = "notion-access-token"
 
 func GoogleSignUp(c *gin.Context) {
 	id, _ := uuid.NewUUID()
@@ -29,16 +30,21 @@ func GoogleSignUpCallback(c *gin.Context) {
 	code := c.Query("code")
 	// state検証
 	if stateFromRequest != stateFromCookie {
-		c.SetCookie(GOOGLE_OAUTH_STATE, stateFromCookie, -1, "/", os.Getenv("CLIENT_DOMAIN"), true, true)
+		c.SetCookie(GOOGLE_OAUTH_STATE, "", -1, "/", os.Getenv("CLIENT_DOMAIN"), true, true)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "invalid oauth google state",
 		})
 	}
 	// Cookie削除
-	c.SetCookie(GOOGLE_OAUTH_STATE, stateFromCookie, -1, "/", os.Getenv("CLIENT_DOMAIN"), true, true)
+	c.SetCookie(GOOGLE_OAUTH_STATE, "", -1, "/", os.Getenv("CLIENT_DOMAIN"), true, true)
 	// Token保存
 	o := model.NewGoogleOAuth()
 	token, err := o.GetTokenFromCode(c.Request.Context(), code)
+	if token.RefreshToken == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "refresh token is empty",
+		})
+	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -84,13 +90,13 @@ func NotionOAuthCallback(c *gin.Context) {
 	code := c.Query("code")
 	// state検証
 	if stateFromRequest != stateFromCookie {
-		c.SetCookie(GOOGLE_OAUTH_STATE, stateFromCookie, -1, "/", os.Getenv("CLIENT_DOMAIN"), true, true)
+		c.SetCookie(GOOGLE_OAUTH_STATE, "", -1, "/", os.Getenv("CLIENT_DOMAIN"), true, true)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "invalid oauth google state",
 		})
 	}
 	// Cookie削除
-	c.SetCookie(NOTION_OAUTH_STATE, stateFromCookie, -1, "/", os.Getenv("CLIENT_DOMAIN"), true, true)
+	c.SetCookie(NOTION_OAUTH_STATE, "", -1, "/", os.Getenv("CLIENT_DOMAIN"), true, true)
 	// Token保存
 	o := model.NewNotionOAuth()
 	token, err := o.GetTokenFromCode(c, code)
@@ -100,6 +106,13 @@ func NotionOAuthCallback(c *gin.Context) {
 		})
 		return
 	}
-	log.Println("🥺", token, err)
+	cipherAccessToken, err := util.Encrypt([]byte(token.AccessToken), []byte(os.Getenv("ENCRYPTION_KEY")))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	c.SetCookie(NOTION_ACCESS_TOKEN, string(cipherAccessToken), 365*24*60, "/", os.Getenv("CLIENT_DOMAIN"), true, true)
 	c.Redirect(http.StatusFound, "http://localhost:5173/step/input-db-name")
 }
