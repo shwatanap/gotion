@@ -3,8 +3,10 @@ package model
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
+	"github.com/shwatanap/gotion/internal/util"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -15,7 +17,8 @@ type OAuth struct {
 }
 
 func (o *OAuth) GetAuthCodeURL(oauthState string) string {
-	authURL := o.Config.AuthCodeURL(oauthState, oauth2.AccessTypeOffline)
+	// oauth2.ApprovalForce: ユーザーに強制的に認証を要求する
+	authURL := o.Config.AuthCodeURL(oauthState, oauth2.AccessTypeOffline, oauth2.ApprovalForce)
 	return authURL
 }
 
@@ -87,5 +90,20 @@ func PutRefreshToken(ctx context.Context, userID string, refreshToken []byte) er
 		}
 	}
 	_, err = docRef.Set(ctx, data)
+	return err
+}
+
+// NotionはAccessTokenが永続的に使用できるので、RefreshTokenが存在しない
+func PutNotionAccessToken(ctx context.Context, userID string, notionAccessToken []byte, dbURL string) error {
+	client := NewFirestore(ctx)
+	docRef := client.Collection("users").Doc(userID).Collection("connections").Doc(dbURL)
+	// TODO: access_tokenの暗号化
+	data := map[string]interface{}{
+		"db_url":              dbURL,
+		"notion_access_token": notionAccessToken,
+		"created_at":          time.Now(),
+		"updated_at":          time.Now(),
+	}
+	_, err := docRef.Set(ctx, data)
 	return err
 }
