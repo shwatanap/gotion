@@ -54,8 +54,14 @@ func GoogleSignUpCallback(c *gin.Context) {
 		}
 		c.SetCookie("user_id", userID, 365*24*60, "/", os.Getenv("CLIENT_DOMAIN"), true, true)
 	}
-
-	if err = model.PutRefreshToken(c.Request.Context(), userID, token.RefreshToken); err != nil {
+	cipherRefreshToken, err := util.Encrypt([]byte(token.RefreshToken), []byte(os.Getenv("ENCRYPTION_KEY")))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	if err = model.PutRefreshToken(c.Request.Context(), userID, cipherRefreshToken); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
