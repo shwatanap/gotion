@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"os"
+	"time"
 
 	"github.com/jomei/notionapi"
 	"golang.org/x/oauth2"
@@ -122,6 +123,22 @@ func (nc *NotionClient) AddEvent(ctx context.Context, req AddEventRequest) error
 			},
 		},
 	})
+	return err
+}
+
+// NotionはAccessTokenが永続的に使用できるので、RefreshTokenが存在しない
+func PutNotionAccessToken(ctx context.Context, userID string, notionAccessToken []byte, dbID string, dbName string) error {
+	client := NewFirestore(ctx)
+	docRef := client.Collection("users").Doc(userID).Collection("connections").Doc(dbID)
+	// TODO: access_tokenの暗号化
+	data := map[string]interface{}{
+		"db_id":               dbID,
+		"db_name":             dbName,
+		"notion_access_token": notionAccessToken,
+		"created_at":          time.Now(),
+		"updated_at":          time.Now(),
+	}
+	_, err := docRef.Set(ctx, data)
 	return err
 }
 

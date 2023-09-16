@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"strconv"
 
@@ -9,10 +10,24 @@ import (
 	"golang.org/x/oauth2"
 )
 
-func GCalendarExport(ctx context.Context, token *oauth2.Token, notionAPIkey, pageID, dbTitle string) {
+func GCalendarExport(ctx context.Context, token *oauth2.Token, notionAPIkey, pageID, dbTitle string, calendarIDs []string) (*notionapi.Database, error) {
 	cs, _ := NewCalendarService(ctx, token)
 	es := NewEventService(cs.Srv.Events)
-	calendars, _ := cs.CalendarList()
+
+	// calendarIDsからカレンダーを取得
+	calendars := make([]*Calendar, len(calendarIDs))
+	for i, calendarID := range calendarIDs {
+		calendar, err := cs.GetCalendar(calendarID)
+		if err != nil {
+			return nil, err
+		}
+		if calendar == nil {
+			return nil, fmt.Errorf("calendar not found")
+		}
+		calendars[i] = calendar
+	}
+
+	// カレンダーのオプションを作成
 	calendarOptions := make([]notionapi.Option, len(calendars))
 	for i, c := range calendars {
 		color := GCalendaToNotionColorMap[c.Calendar.ColorId]
@@ -27,6 +42,7 @@ func GCalendarExport(ctx context.Context, token *oauth2.Token, notionAPIkey, pag
 		calendarOptions[i] = option
 	}
 
+	// データベースの作成
 	nc := NewNotionClient(notionAPIkey)
 	db, err := nc.CreateDatabase(ctx, CreateDatabaseRequest{
 		PageID:          pageID,
@@ -34,21 +50,20 @@ func GCalendarExport(ctx context.Context, token *oauth2.Token, notionAPIkey, pag
 		CalendarOptions: calendarOptions,
 	})
 	if err != nil {
-		log.Printf("error from new notion client😡: %v", err)
+		return nil, err
 	}
 
 	// ここからイベント作成処理
 	for i, c := range calendars {
 		events, err := es.EventList(c.Calendar.Id)
 		if err != nil {
-			log.Printf("error from event list😡: %v", err)
-			return
+			return nil, err
 		}
 		for _, e := range events {
+			log.Println(e.Event.Id, e.Event.Start, e.Event.Summary)
 			start, end, err := ConvertGCalendarToNotionTimeFormat(e.Event.Start, e.Event.End)
 			if err != nil {
-				log.Fatalln(err)
-				return
+				return nil, err
 			}
 			if err := nc.AddEvent(ctx, AddEventRequest{
 				DatabaseID:       notionapi.DatabaseID(db.ID),
@@ -57,9 +72,9 @@ func GCalendarExport(ctx context.Context, token *oauth2.Token, notionAPIkey, pag
 				DateStart:        start,
 				DateEnd:          end,
 			}); err != nil {
-				log.Printf("error from add event😡: %v", err)
-				return
+				return nil, err
 			}
 		}
 	}
+	return db, nil
 }

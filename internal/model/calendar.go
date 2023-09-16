@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 
 	"golang.org/x/oauth2"
 	"google.golang.org/api/calendar/v3"
@@ -37,4 +38,18 @@ func (cs *CalendarsService) CalendarList() ([]*Calendar, error) {
 		cms[i] = &Calendar{Calendar: calendarListEntry}
 	}
 	return cms, nil
+}
+
+func (cs *CalendarsService) GetCalendar(calendarID string) (*Calendar, error) {
+	calendarListEntry, err := cs.Srv.CalendarList.Get(calendarID).Do()
+	if err != nil {
+		return nil, err
+	}
+	if calendarListEntry == nil {
+		return nil, fmt.Errorf("calendar not found")
+	}
+	calendar := &Calendar{
+		Calendar: calendarListEntry,
+	}
+	return calendar, nil
 }

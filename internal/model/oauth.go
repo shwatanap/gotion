@@ -92,18 +92,3 @@ func PutRefreshToken(ctx context.Context, userID string, refreshToken []byte) er
 	_, err = docRef.Set(ctx, data)
 	return err
 }
-
-// NotionはAccessTokenが永続的に使用できるので、RefreshTokenが存在しない
-func PutNotionAccessToken(ctx context.Context, userID string, notionAccessToken []byte, dbURL string) error {
-	client := NewFirestore(ctx)
-	docRef := client.Collection("users").Doc(userID).Collection("connections").Doc(dbURL)
-	// TODO: access_tokenの暗号化
-	data := map[string]interface{}{
-		"db_url":              dbURL,
-		"notion_access_token": notionAccessToken,
-		"created_at":          time.Now(),
-		"updated_at":          time.Now(),
-	}
-	_, err := docRef.Set(ctx, data)
-	return err
-}
