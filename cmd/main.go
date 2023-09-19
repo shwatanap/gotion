@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/joho/godotenv"
 
@@ -9,11 +10,16 @@ import (
 )
 
 func main() {
-	if err := godotenv.Load(".env"); err != nil {
-		log.Fatalf("Unable to read .env file: %v", err)
+	if os.Getenv("ENV") == "dev" {
+		if err := godotenv.Load(".env"); err != nil {
+			log.Fatalf("Unable to read .env file: %v", err)
+		}
 	}
-
-	if err := router.Router().Run(":8000"); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8000"
+	}
+	if err := router.Router().Run(":" + port); err != nil {
 		panic(err)
 	}
 }
