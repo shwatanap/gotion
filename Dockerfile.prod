@@ -1,0 +1,13 @@
+FROM golang:1.20.0-alpine
+
+RUN mkdir /app
+WORKDIR /app
+
+COPY ./ ./
+RUN go mod download
+
+EXPOSE 8080
+
+RUN GOOS=linux GOARCH=amd64 go build -mod=readonly -v -o server ./cmd/main.go
+
+CMD ./server
