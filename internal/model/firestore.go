@@ -14,7 +14,7 @@ type Firestore struct {
 }
 
 func NewFirestore(ctx context.Context) *firestore.Client {
-	opt := option.WithCredentialsFile("serviceAccountKey.json")
+	opt := option.WithCredentialsFile("./secret/serviceAccountKey.json")
 	app, err := firebase.NewApp(ctx, nil, opt)
 	if err != nil {
 		log.Fatalln(err)
