@@ -130,7 +130,6 @@ func (nc *NotionClient) AddEvent(ctx context.Context, req AddEventRequest) error
 func PutNotionAccessToken(ctx context.Context, userID string, notionAccessToken []byte, dbID string, dbName string) error {
 	client := NewFirestore(ctx)
 	docRef := client.Collection("users").Doc(userID).Collection("connections").Doc(dbID)
-	// TODO: access_tokenの暗号化
 	data := map[string]interface{}{
 		"db_id":               dbID,
 		"db_name":             dbName,
