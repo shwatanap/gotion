@@ -16,12 +16,14 @@ func CalendarList(c *gin.Context) {
 		c.JSON(500, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
 	cs, err := model.NewCalendarService(c.Request.Context(), token)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
 	calendars, _ := cs.CalendarList()
 	// var res model.CalendarListResponse
