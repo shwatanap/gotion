@@ -19,7 +19,8 @@ func GCalendarExport(c *gin.Context) {
 		})
 		return
 	}
-	userID, _ := c.Cookie("user_id")
+	userIDAny, _ := c.Get("user_id")
+	userID, _ := userIDAny.(string)
 	cipherAccessToken, _ := c.Cookie(NOTION_ACCESS_TOKEN)
 	accessToken, err := util.Decrypt([]byte(cipherAccessToken), []byte(os.Getenv("ENCRYPTION_KEY")))
 	if err != nil {

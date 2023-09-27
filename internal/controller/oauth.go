@@ -96,8 +96,9 @@ func GoogleSignUpCallback(c *gin.Context) {
 	}
 	// nonceのcookie削除
 	util.SetCookie(c, GOOGLE_OAUTH_NONCE, "", -1, GOOGLE_OAUTH_PATH, true, true)
-	userID, err := c.Cookie("user_id")
-	if err != nil {
+	userIDAny, isExist := c.Get("user_id")
+	userID, _ := userIDAny.(string)
+	if !isExist {
 		util.SetCookie(c, "user_id", idToken.Subject, 365*24*60, GOOGLE_OAUTH_PATH, true, true)
 	}
 	cipherRefreshToken, err := util.Encrypt([]byte(token.RefreshToken), []byte(os.Getenv("ENCRYPTION_KEY")))

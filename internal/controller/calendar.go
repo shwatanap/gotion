@@ -8,8 +8,8 @@ import (
 )
 
 func CalendarList(c *gin.Context) {
-	// TODO: Cookieにuser_idが存在しない場合のエラーハンドリング
-	userID, _ := c.Cookie("user_id")
+	userIDAny, _ := c.Get("user_id")
+	userID, _ := userIDAny.(string)
 	o := model.NewGoogleOAuth()
 	token, err := o.RefreshToken(c.Request.Context(), userID)
 	if err != nil {
