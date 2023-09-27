@@ -8,8 +8,8 @@ import (
 
 func Router() *gin.Engine {
 	router := gin.Default()
-	middleware.Cors(router)
-	middleware.SetSameSite(router)
+	router.Use(middleware.Cors())
+	router.Use(middleware.SetSameSite())
 
 	initTemplateRouter(router)
 	initHealthRouter(router)
