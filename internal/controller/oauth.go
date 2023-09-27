@@ -11,16 +11,25 @@ import (
 	"github.com/shwatanap/gotion/internal/util"
 )
 
-const GOOGLE_OAUTH_STATE = "google-oauth-state"
-const GOOGLE_OAUTH_NONCE = "google-oauth-nonce"
-const NOTION_OAUTH_STATE = "notion-oauth-state"
-const NOTION_ACCESS_TOKEN = "notion-access-token"
+// Cookie name
+const (
+	GOOGLE_OAUTH_STATE  = "google-oauth-state"
+	GOOGLE_OAUTH_NONCE  = "google-oauth-nonce"
+	NOTION_OAUTH_STATE  = "notion-oauth-state"
+	NOTION_ACCESS_TOKEN = "notion-access-token"
+)
+
+// Cookie path
+const (
+	GOOGLE_OAUTH_PATH = "/oauth/google"
+	NOTION_OAUTH_PATH = "/oauth/notion"
+)
 
 func GoogleSignUp(c *gin.Context) {
 	state, _ := util.RandString(16)
 	nonce, _ := util.RandString(16)
-	c.SetCookie(GOOGLE_OAUTH_STATE, state, 365*24*60, "/", os.Getenv("SERVER_DOMAIN"), true, true)
-	c.SetCookie(GOOGLE_OAUTH_NONCE, nonce, 365*24*60, "/", os.Getenv("SERVER_DOMAIN"), true, true)
+	c.SetCookie(GOOGLE_OAUTH_STATE, state, 365*24*60, GOOGLE_OAUTH_PATH, os.Getenv("SERVER_DOMAIN"), true, true)
+	c.SetCookie(GOOGLE_OAUTH_NONCE, nonce, 365*24*60, GOOGLE_OAUTH_PATH, os.Getenv("SERVER_DOMAIN"), true, true)
 	o := model.NewGoogleOAuth()
 	c.Header("Location", o.GetAuthCodeURLWithNonce(state, nonce))
 	c.JSON(http.StatusNoContent, gin.H{})
@@ -32,13 +41,13 @@ func GoogleSignUpCallback(c *gin.Context) {
 	code := c.Query("code")
 	// state検証
 	if stateFromRequest != stateFromCookie {
-		c.SetCookie(GOOGLE_OAUTH_STATE, "", -1, "/", os.Getenv("SERVER_DOMAIN"), true, true)
+		c.SetCookie(GOOGLE_OAUTH_STATE, "", -1, GOOGLE_OAUTH_PATH, os.Getenv("SERVER_DOMAIN"), true, true)
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "invalid oauth google state",
 		})
 	}
 	// Cookie削除
-	c.SetCookie(GOOGLE_OAUTH_STATE, "", -1, "/", os.Getenv("SERVER_DOMAIN"), true, true)
+	c.SetCookie(GOOGLE_OAUTH_STATE, "", -1, GOOGLE_OAUTH_PATH, os.Getenv("SERVER_DOMAIN"), true, true)
 	// Token保存
 	o := model.NewGoogleOAuth()
 	token, err := o.GetTokenFromCode(c.Request.Context(), code)
@@ -82,10 +91,10 @@ func GoogleSignUpCallback(c *gin.Context) {
 		})
 	}
 	// nonceのcookie削除
-	c.SetCookie(GOOGLE_OAUTH_NONCE, "", -1, "/", os.Getenv("SERVER_DOMAIN"), true, true)
+	c.SetCookie(GOOGLE_OAUTH_NONCE, "", -1, GOOGLE_OAUTH_PATH, os.Getenv("SERVER_DOMAIN"), true, true)
 	userID, err := c.Cookie("user_id")
 	if err != nil {
-		c.SetCookie("user_id", idToken.Subject, 365*24*60, "/", os.Getenv("SERVER_DOMAIN"), true, true)
+		c.SetCookie("user_id", idToken.Subject, 365*24*60, GOOGLE_OAUTH_PATH, os.Getenv("SERVER_DOMAIN"), true, true)
 	}
 	cipherRefreshToken, err := util.Encrypt([]byte(token.RefreshToken), []byte(os.Getenv("ENCRYPTION_KEY")))
 	if err != nil {
@@ -104,7 +113,7 @@ func GoogleSignUpCallback(c *gin.Context) {
 func NotionOAuth(c *gin.Context) {
 	id, _ := uuid.NewUUID()
 	state := id.String()
-	c.SetCookie(NOTION_OAUTH_STATE, state, 365*24*60, "/", os.Getenv("SERVER_DOMAIN"), true, true)
+	c.SetCookie(NOTION_OAUTH_STATE, state, 365*24*60, NOTION_OAUTH_PATH, os.Getenv("SERVER_DOMAIN"), true, true)
 	o := model.NewNotionOAuth()
 	c.Header("Location", o.GetAuthCodeURL(state))
 	c.JSON(http.StatusNoContent, gin.H{})
@@ -116,13 +125,13 @@ func NotionOAuthCallback(c *gin.Context) {
 	code := c.Query("code")
 	// state検証
 	if stateFromRequest != stateFromCookie {
-		c.SetCookie(GOOGLE_OAUTH_STATE, "", -1, "/", os.Getenv("SERVER_DOMAIN"), true, true)
+		c.SetCookie(GOOGLE_OAUTH_STATE, "", -1, NOTION_OAUTH_PATH, os.Getenv("SERVER_DOMAIN"), true, true)
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "invalid oauth google state",
+			"error": "invalid oauth notion state",
 		})
 	}
 	// Cookie削除
-	c.SetCookie(NOTION_OAUTH_STATE, "", -1, "/", os.Getenv("SERVER_DOMAIN"), true, true)
+	c.SetCookie(NOTION_OAUTH_STATE, "", -1, NOTION_OAUTH_PATH, os.Getenv("SERVER_DOMAIN"), true, true)
 	// Token保存
 	o := model.NewNotionOAuth()
 	token, err := o.GetTokenFromCode(c, code)
@@ -137,6 +146,6 @@ func NotionOAuthCallback(c *gin.Context) {
 			"error": err.Error(),
 		})
 	}
-	c.SetCookie(NOTION_ACCESS_TOKEN, string(cipherAccessToken), 365*24*60, "/", os.Getenv("SERVER_DOMAIN"), true, true)
+	c.SetCookie(NOTION_ACCESS_TOKEN, string(cipherAccessToken), 365*24*60, NOTION_OAUTH_PATH, os.Getenv("SERVER_DOMAIN"), true, true)
 	c.Redirect(http.StatusFound, os.Getenv("CLIENT_BASE_URL")+"/step/input-db-name")
 }
