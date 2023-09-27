@@ -92,7 +92,6 @@ func PutRefreshToken(ctx context.Context, userID string, refreshToken []byte) er
 	if err != nil && status.Code(err) != codes.NotFound {
 		return err
 	}
-	// TODO: refresh_tokenの暗号化
 	var data map[string]interface{}
 	if dsnap.Exists() {
 		data = dsnap.Data()

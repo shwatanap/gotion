@@ -17,14 +17,17 @@ func GCalendarExport(c *gin.Context) {
 		c.JSON(400, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
-	userID, _ := c.Cookie("user_id")
+	userIDAny, _ := c.Get("user_id")
+	userID, _ := userIDAny.(string)
 	cipherAccessToken, _ := c.Cookie(NOTION_ACCESS_TOKEN)
 	accessToken, err := util.Decrypt([]byte(cipherAccessToken), []byte(os.Getenv("ENCRYPTION_KEY")))
 	if err != nil {
 		c.JSON(500, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
 	o := model.NewGoogleOAuth()
 	token, err := o.RefreshToken(c.Request.Context(), userID)
@@ -32,6 +35,7 @@ func GCalendarExport(c *gin.Context) {
 		c.JSON(500, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
 	db, err := model.GCalendarExport(
 		c.Request.Context(),
@@ -45,11 +49,13 @@ func GCalendarExport(c *gin.Context) {
 		c.JSON(500, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
 	if err := model.PutNotionAccessToken(c.Request.Context(), userID, accessToken, db.ID.String(), req.DBName); err != nil {
 		c.JSON(500, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
 	res := response.ExportResponse{
 		DBURL: db.URL,
