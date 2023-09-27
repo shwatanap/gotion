@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 
+	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/calendar/v3"
 	goauth2 "google.golang.org/api/oauth2/v2"
@@ -20,6 +21,7 @@ func NewGoogleOAuth() *OAuth {
 		},
 		RedirectURL: os.Getenv("GOOGLE_REDIRECT_URL"),
 		Scopes: []string{
+			oidc.ScopeOpenID,
 			goauth2.UserinfoProfileScope,
 			calendar.CalendarReadonlyScope,
 		},

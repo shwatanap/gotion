@@ -7,8 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Cors(r *gin.Engine) {
-	r.Use(cors.New(cors.Config{
+func Cors() gin.HandlerFunc {
+	return cors.New(cors.Config{
 		AllowOrigins: []string{
 			"http://localhost:5173",             // 開発環境
 			"https://gotion.vercel.app",         // 本番環境
@@ -36,5 +36,5 @@ func Cors(r *gin.Engine) {
 		},
 		MaxAge:           24 * time.Hour,
 		AllowCredentials: true,
-	}))
+	})
 }
