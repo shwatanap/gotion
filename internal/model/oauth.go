@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/shwatanap/gotion/internal/util"
 	"golang.org/x/oauth2"
 	"google.golang.org/grpc/codes"
@@ -19,6 +20,13 @@ type OAuth struct {
 func (o *OAuth) GetAuthCodeURL(oauthState string) string {
 	// oauth2.ApprovalForce: ユーザーに強制的に認証を要求する
 	authURL := o.Config.AuthCodeURL(oauthState, oauth2.AccessTypeOffline, oauth2.ApprovalForce)
+	return authURL
+}
+
+func (o *OAuth) GetAuthCodeURLWithNonce(oauthState string, nonce string) string {
+	// oauth2.ApprovalForce: ユーザーに強制的に認証を要求する
+	nonceOpt := oidc.Nonce(nonce)
+	authURL := o.Config.AuthCodeURL(oauthState, nonceOpt, oauth2.AccessTypeOffline, oauth2.ApprovalForce)
 	return authURL
 }
 

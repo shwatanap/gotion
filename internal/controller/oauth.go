@@ -12,15 +12,17 @@ import (
 )
 
 const GOOGLE_OAUTH_STATE = "google-oauth-state"
+const GOOGLE_OAUTH_NONCE = "google-oauth-nonce"
 const NOTION_OAUTH_STATE = "notion-oauth-state"
 const NOTION_ACCESS_TOKEN = "notion-access-token"
 
 func GoogleSignUp(c *gin.Context) {
-	id, _ := uuid.NewUUID()
-	state := id.String()
+	state, _ := util.RandString(16)
+	nonce, _ := util.RandString(16)
 	c.SetCookie(GOOGLE_OAUTH_STATE, state, 365*24*60, "/", os.Getenv("SERVER_DOMAIN"), true, true)
+	c.SetCookie(GOOGLE_OAUTH_NONCE, nonce, 365*24*60, "/", os.Getenv("SERVER_DOMAIN"), true, true)
 	o := model.NewGoogleOAuth()
-	c.Header("Location", o.GetAuthCodeURL(state))
+	c.Header("Location", o.GetAuthCodeURLWithNonce(state, nonce))
 	c.JSON(http.StatusNoContent, gin.H{})
 }
 
@@ -57,15 +59,33 @@ func GoogleSignUpCallback(c *gin.Context) {
 			"error": "refresh token is empty",
 		})
 	}
+	rawIDToken, ok := token.Extra("id_token").(string)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "id_token is empty",
+		})
+		return
+	}
+	verifier, _ := model.NewVerifier(c.Request.Context())
+	// idTokenの検証と解析
+	idToken, err := verifier.Verify(c, rawIDToken)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+	}
+	// nonce検証
+	nonce, _ := c.Cookie(GOOGLE_OAUTH_NONCE)
+	if idToken.Nonce != nonce {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "invalid oauth google nonce",
+		})
+	}
+	// nonceのcookie削除
+	c.SetCookie(GOOGLE_OAUTH_NONCE, "", -1, "/", os.Getenv("SERVER_DOMAIN"), true, true)
 	userID, err := c.Cookie("user_id")
 	if err != nil {
-		userID, err = o.GetUserID(c.Request.Context(), token)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err.Error(),
-			})
-		}
-		c.SetCookie("user_id", userID, 365*24*60, "/", os.Getenv("SERVER_DOMAIN"), true, true)
+		c.SetCookie("user_id", idToken.Subject, 365*24*60, "/", os.Getenv("SERVER_DOMAIN"), true, true)
 	}
 	cipherRefreshToken, err := util.Encrypt([]byte(token.RefreshToken), []byte(os.Getenv("ENCRYPTION_KEY")))
 	if err != nil {
@@ -78,7 +98,7 @@ func GoogleSignUpCallback(c *gin.Context) {
 			"error": err.Error(),
 		})
 	}
-	c.Redirect(http.StatusFound, "https://gotion-staging.vercel.app/step/notion-oauth")
+	c.Redirect(http.StatusFound, os.Getenv("CLIENT_BASE_URL")+"/step/notion-oauth")
 }
 
 func NotionOAuth(c *gin.Context) {
@@ -118,5 +138,5 @@ func NotionOAuthCallback(c *gin.Context) {
 		})
 	}
 	c.SetCookie(NOTION_ACCESS_TOKEN, string(cipherAccessToken), 365*24*60, "/", os.Getenv("SERVER_DOMAIN"), true, true)
-	c.Redirect(http.StatusFound, "http://gotion-staging.vercel.app/step/input-db-name")
+	c.Redirect(http.StatusFound, os.Getenv("CLIENT_BASE_URL")+"/step/input-db-name")
 }
