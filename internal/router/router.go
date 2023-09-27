@@ -13,8 +13,13 @@ func Router() *gin.Engine {
 
 	initTemplateRouter(router)
 	initHealthRouter(router)
-	initOAuthRouter(router)
-	initCalendarRouter(router)
-	initExportRouter(router)
+
+	authRequiredGroup := router.Group("/")
+	authRequiredGroup.Use(middleware.Auth())
+	{
+		initOAuthRouter(authRequiredGroup)
+		initCalendarRouter(authRequiredGroup)
+		initExportRouter(authRequiredGroup)
+	}
 	return router
 }

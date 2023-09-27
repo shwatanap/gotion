@@ -6,6 +6,6 @@ import (
 	"github.com/shwatanap/gotion/internal/controller"
 )
 
-func initCalendarRouter(router *gin.Engine) {
+func initCalendarRouter(router *gin.RouterGroup) {
 	router.GET("/calendars", controller.CalendarList)
 }
