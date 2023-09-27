@@ -76,6 +76,15 @@ func GetRefreshToken(ctx context.Context, userID string) ([]byte, error) {
 	return m["google_refresh_token"].([]byte), nil
 }
 
+func IsUserExist(ctx context.Context, userID string) error {
+	client := NewFirestore(ctx)
+	_, err := client.Collection("users").Doc(userID).Get(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func PutRefreshToken(ctx context.Context, userID string, refreshToken []byte) error {
 	client := NewFirestore(ctx)
 	docRef := client.Collection("users").Doc(userID)
