@@ -6,11 +6,13 @@ import (
 	"github.com/shwatanap/gotion/internal/controller"
 )
 
-func initOAuthRouter(r *gin.RouterGroup) {
+func initGoogleOAuthRouter(r *gin.Engine) {
 	grg := r.Group("/oauth/google")
 	grg.GET("", controller.GoogleSignUp)
 	grg.GET("/callback", controller.GoogleSignUpCallback)
+}
 
+func initNotionOAuthRouter(r *gin.RouterGroup) {
 	nrg := r.Group("/oauth/notion")
 	nrg.GET("", controller.NotionOAuth)
 	nrg.GET("/callback", controller.NotionOAuthCallback)
