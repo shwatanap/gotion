@@ -26,7 +26,6 @@ func CalendarList(c *gin.Context) {
 		return
 	}
 	calendars, _ := cs.CalendarList()
-	// var res model.CalendarListResponse
 	res := make([]response.CalendarResponse, len(calendars))
 	for i, c := range calendars {
 		res[i] = response.CalendarResponse{
