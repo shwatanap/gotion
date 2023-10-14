@@ -28,8 +28,8 @@ const (
 func GoogleSignUp(c *gin.Context) {
 	state, _ := util.RandString(16)
 	nonce, _ := util.RandString(16)
-	util.SetCookie(c, GOOGLE_OAUTH_STATE, state, 365*24*60, GOOGLE_OAUTH_PATH, true, true)
-	util.SetCookie(c, GOOGLE_OAUTH_NONCE, nonce, 365*24*60, GOOGLE_OAUTH_PATH, true, true)
+	util.SetCookie(c, GOOGLE_OAUTH_STATE, state, 24*60, GOOGLE_OAUTH_PATH, true, true)
+	util.SetCookie(c, GOOGLE_OAUTH_NONCE, nonce, 24*60, GOOGLE_OAUTH_PATH, true, true)
 	o := model.NewGoogleOAuth()
 	c.Header("Location", o.GetAuthCodeURLWithNonce(state, nonce))
 	c.JSON(http.StatusNoContent, gin.H{})
@@ -51,7 +51,7 @@ func GoogleSignUpCallback(c *gin.Context) {
 	util.SetCookie(c, GOOGLE_OAUTH_STATE, "", -1, GOOGLE_OAUTH_PATH, true, true)
 	// Token保存
 	o := model.NewGoogleOAuth()
-	token, err := o.GetTokenFromCode(c.Request.Context(), code)
+	token, err := o.GetTokenFromCode(c, code)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -77,7 +77,7 @@ func GoogleSignUpCallback(c *gin.Context) {
 		})
 		return
 	}
-	verifier, _ := model.NewVerifier(c.Request.Context())
+	verifier, _ := model.NewVerifier(c)
 	// idTokenの検証と解析
 	idToken, err := verifier.Verify(c, rawIDToken)
 	if err != nil {
@@ -99,7 +99,7 @@ func GoogleSignUpCallback(c *gin.Context) {
 	userIDAny, isExist := c.Get("user_id")
 	userID, _ := userIDAny.(string)
 	if !isExist {
-		util.SetCookie(c, "user_id", idToken.Subject, 365*24*60, GOOGLE_OAUTH_PATH, true, true)
+		util.SetCookie(c, "user_id", idToken.Subject, 10*24*60, GOOGLE_OAUTH_PATH, true, true)
 	}
 	cipherRefreshToken, err := util.Encrypt([]byte(token.RefreshToken), []byte(os.Getenv("ENCRYPTION_KEY")))
 	if err != nil {
@@ -108,7 +108,7 @@ func GoogleSignUpCallback(c *gin.Context) {
 		})
 		return
 	}
-	if err = model.PutRefreshToken(c.Request.Context(), userID, cipherRefreshToken); err != nil {
+	if err = model.PutRefreshToken(c, userID, cipherRefreshToken); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
@@ -120,7 +120,7 @@ func GoogleSignUpCallback(c *gin.Context) {
 func NotionOAuth(c *gin.Context) {
 	id, _ := uuid.NewUUID()
 	state := id.String()
-	util.SetCookie(c, NOTION_OAUTH_STATE, state, 365*24*60, NOTION_OAUTH_PATH, true, true)
+	util.SetCookie(c, NOTION_OAUTH_STATE, state, 24*60, NOTION_OAUTH_PATH, true, true)
 	o := model.NewNotionOAuth()
 	c.Header("Location", o.GetAuthCodeURL(state))
 	c.JSON(http.StatusNoContent, gin.H{})
@@ -156,6 +156,6 @@ func NotionOAuthCallback(c *gin.Context) {
 		})
 		return
 	}
-	util.SetCookie(c, NOTION_ACCESS_TOKEN, string(cipherAccessToken), 365*24*60, NOTION_OAUTH_PATH, true, true)
+	util.SetCookie(c, NOTION_ACCESS_TOKEN, string(cipherAccessToken), 24*60, "/", true, true)
 	c.Redirect(http.StatusFound, os.Getenv("CLIENT_BASE_URL")+"/step/input-db-name")
 }

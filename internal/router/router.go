@@ -13,11 +13,12 @@ func Router() *gin.Engine {
 
 	initTemplateRouter(router)
 	initHealthRouter(router)
+	initGoogleOAuthRouter(router)
 
 	authRequiredGroup := router.Group("/")
 	authRequiredGroup.Use(middleware.Auth())
 	{
-		initOAuthRouter(authRequiredGroup)
+		initNotionOAuthRouter(authRequiredGroup)
 		initCalendarRouter(authRequiredGroup)
 		initExportRouter(authRequiredGroup)
 	}

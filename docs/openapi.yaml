@@ -1,0 +1,173 @@
+openapi: 3.0.3
+info:
+  title: Gotion API
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8000'
+    description: 開発環境
+paths:
+  '/health':
+    get:
+      description: ヘルスチェック
+      operationId: HealthCheck
+      responses:
+        '200':
+          description: 成功時
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+
+  '/oauth/google':
+    get:
+      description: Google OAuth認証
+      operationId: GoogleOAuth
+      responses:
+        '204':
+          description: No Content
+          headers:
+            Location:
+              description: Redirect URL
+              schema:
+                type: string
+            Set-Cookie_1:
+              description: CSRF対策用のstate
+              schema:
+                type: string
+                example: name=google-oauth-state; Path=/oauth/google; Max-Age=24*60; Secure; HttpOnly; SameSite=None;
+            Set-Cookie_2:
+              description: OCIDのためのnonce
+              schema:
+                type: string
+                example: name=google-oauth-nonce; Path=/oauth/google; Max-Age=24*60; Secure; HttpOnly; SameSite=None;
+
+  '/oauth/google/callback':
+    get:
+      description: Google OAuth認証
+      operationId: GoogleOAuth
+      parameters:
+        - name: code
+          in: path
+          schema:
+            type: string
+          required: true
+          description: 認証コード
+        - name: stateFromRequest
+          description: CSRF対策用のstate Queryから取り出し
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: stateFromCookie
+          description: CSRF対策用のstate Cookieから取り出し
+          in: cookie
+          required: true
+          schema:
+            type: string
+        - name: nonce
+          description: OCIDのためのnonce
+          in: cookie
+          required: true
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect Gotion Notion OAuth Page
+          headers:
+            Set-Cookie:
+              description: User ID
+              schema:
+                type: string
+                example: name=user-id; Path=/; Max-Age=10*24*60; Secure; HttpOnly; SameSite=None;
+
+  '/oauth/notion':
+    get:
+      description: Notion OAuth認証
+      operationId: NotionOAuth
+      responses:
+        '204':
+          description: No Content
+          headers:
+            Location:
+              description: Redirect URL
+              schema:
+                type: string
+            Set-Cookie:
+              description: CSRF対策用のstate
+              schema:
+                type: string
+                example: name=google-oauth-state; Path=/oauth/google; Max-Age=24*60; Secure; HttpOnly; SameSite=None;
+
+  '/oauth/notion/callback':
+    get:
+      description: Notion OAuth認証
+      operationId: NotionOAuth
+      parameters:
+        - name: code
+          description: 認証コード
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: stateFromRequest
+          description: CSRF対策用のstate Queryから取り出し
+          in: path
+          schema:
+            type: string
+          required: true
+        - name: stateFromCookie
+          description: CSRF対策用のstate Cookieから取り出し
+          in: cookie
+          required: true
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect Gotion DB Name Page (/step/input-db-name)
+          headers:
+            Set-Cookie:
+              description: notionのaccess tokenを暗号化
+              schema:
+                type: string
+                example: name=notion-access-token; Path=/; Max-Age=24*60; Secure; HttpOnly; SameSite=None;
+
+  '/calendars':
+    get:
+      description: GoogleCalendar一覧
+      operationId: CalendarList
+      responses:
+        '200':
+          description: 成功時
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    summary:
+                      type: string
+                    color_id:
+                      type: string
+                    access_role:
+                      type: string
+
+  '/export':
+    post:
+      description: GoogleCalendarのイベントをNotion DBにエクスポート
+      operationId: Export
+      responses:
+        '200':
+          description: 成功時
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  db_url:
+                    type: string

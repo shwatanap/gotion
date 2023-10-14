@@ -11,14 +11,14 @@ func CalendarList(c *gin.Context) {
 	userIDAny, _ := c.Get("user_id")
 	userID, _ := userIDAny.(string)
 	o := model.NewGoogleOAuth()
-	token, err := o.RefreshToken(c.Request.Context(), userID)
+	token, err := o.RefreshToken(c, userID)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
-	cs, err := model.NewCalendarService(c.Request.Context(), token)
+	cs, err := model.NewCalendarService(c, token)
 	if err != nil {
 		c.JSON(500, gin.H{
 			"error": err.Error(),
@@ -26,7 +26,6 @@ func CalendarList(c *gin.Context) {
 		return
 	}
 	calendars, _ := cs.CalendarList()
-	// var res model.CalendarListResponse
 	res := make([]response.CalendarResponse, len(calendars))
 	for i, c := range calendars {
 		res[i] = response.CalendarResponse{
