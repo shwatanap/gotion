@@ -5,5 +5,3 @@ tmp
 # enviroment files
 .env
 *.json
-
-*.sh

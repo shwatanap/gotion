@@ -99,7 +99,8 @@ func GoogleSignUpCallback(c *gin.Context) {
 	userIDAny, isExist := c.Get("user_id")
 	userID, _ := userIDAny.(string)
 	if !isExist {
-		util.SetCookie(c, "user_id", idToken.Subject, 10*24*60, GOOGLE_OAUTH_PATH, true, true)
+		userID = idToken.Subject
+		util.SetCookie(c, "user_id", idToken.Subject, 10*24*60, "/", true, true)
 	}
 	cipherRefreshToken, err := util.Encrypt([]byte(token.RefreshToken), []byte(os.Getenv("ENCRYPTION_KEY")))
 	if err != nil {
